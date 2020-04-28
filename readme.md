@@ -2,14 +2,24 @@
 
 ## To do
 
-1. Download data to AWS
+1. Download data to AWS - DONE
 2. Duplicate benchmarks from Pfizer paper
 3. 
+
+## Requirements
+'pip install pytorch-lightning'
 
 ## Notes
 * We followed the methods in [pfizer paper](papers/pfizer-tx.pdf)
 * Following the recommendations in xxx, we used the full gene expression datasets, CLR normalized and downloaded from xxx.
 * We focused on the 24 classification tasks
+
+## Code
+```bash
+git clone git@github.com:notreallyme2/tx-metalearning.git
+git clone https://github.com/unlearnai/representation_learning_for_transcriptomics.git
+git clone git@github.com:notreallyme2/torch-templates.git
+```
 
 ## Data 
 
