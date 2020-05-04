@@ -4,7 +4,10 @@
 
 1. Download data to AWS - DONE
 2. Duplicate benchmarks from Pfizer paper
-3. 
+3. Try Neural Tangent Kernels as an additional baseline
+4. Better VAEs - disentangled? 
+5. Flow model - the nonlinear ICA one?
+6. Meta-learning - Warped GD
 
 ## Requirements
 'pip install pytorch-lightning'
@@ -13,6 +16,17 @@
 * We followed the methods in [pfizer paper](papers/pfizer-tx.pdf)
 * Following the recommendations in xxx, we used the full gene expression datasets, CLR normalized and downloaded from xxx.
 * We focused on the 24 classification tasks
+* Two papers? Meta-learning and causal/better AEs
+
+### On nested cross-validation
+
+The aim of nested cross-validation is *not to select a model with great hyperparameters*.  
+Rather, it is to test our overall modelling methodology.  
+*Can our way of choosing a good set of hyperparameters be expected to find a good final model?*
+
+From <https://weina.me/nested-cross-validation>: "...if the model is stable (does not change much if the training data is perturbed), the hyperparameter found in each outer loop may be the same (using grid search) or similar to each other (using random search)."
+
+This is the best way to compare each method.
 
 ## Code
 ```bash
