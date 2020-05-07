@@ -42,6 +42,7 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
         os.mkdir("./results/")
     results = []
     best_params = []
+    dataset_path = Path(dataset_path)
     results_path = Path(f"./results/{dataset_path.stem}_knn.csv")
     print(f"Training on {dataset_path}")
     keys = hdf_keys(dataset_path)
