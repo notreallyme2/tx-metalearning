@@ -38,12 +38,11 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     hparams : dict
     
     """
-    if not os.path.exists("./results/"):
-        os.mkdir("./results/")
+    results_dir =  pathlib.Path("./results/knn/").mkdir(parents=True, exist_ok=True)
     results = []
     best_params = []
     dataset_path = Path(dataset_path)
-    results_path = Path(f"./results/{dataset_path.stem}_knn.csv")
+    results_path = Path(results_dir/f"{dataset_path.stem}_knn.csv")
     print(f"Training on {dataset_path}")
     keys = hdf_keys(dataset_path)
     test_data = {key : pd.read_hdf(dataset_path, key = key) for key in keys}
