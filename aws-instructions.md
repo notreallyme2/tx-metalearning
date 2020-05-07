@@ -15,6 +15,18 @@ git clone https://github.com/unlearnai/representation_learning_for_transcriptomi
 cd tx-metalearning
 pip3 --no-cache-dir install pytorch-lightning torch torchvision matplotlib jupyter jupyterlab
 jupyter-lab --no-browser --port 8888
+tensorboard --logdir lightning_logs/ --port 6006
+```
+
+You need to port forward both ports, type this in your local machine (assuming you have set up `~/.ssh/config` correctly...):  
+```bash
+ssh -NfL 8888:localhost:8888 base-ami-gpu # for jupyter 
+ssh -NfL 6006:localhost:6006 base-ami-gpu # for tb 
 ```
 
 Each time you restart your instance you will need to update the PublicDNS and remount the drives.
+
+``` bash
+sudo mount /dev/xvdf /data # mount
+sudo chmod 777 /data
+```

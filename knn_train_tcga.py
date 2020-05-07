@@ -11,12 +11,12 @@ from joblib import Parallel, delayed
 import pandas as pd
 
 STEM_PATH = Path("/data/pfizer_tx/tasks_all_clr/")
-tcga_classification_tasks = pd.read_csv("tcga_classification_tasks.csv")
+tcga_classification_tasks = pd.read_csv("./data_utilities/tcga_classification_tasks.csv")
 full_paths = [str(STEM_PATH/f) for f in tcga_classification_tasks["filename"]]
 
 def run_model(file_path):
     print(f"Training models on {file_path}")
-    cmd = ["python3", "knn_baseline.py", "--dataset_path", file_path]
+    cmd = ["python3", "./models/knn_baseline.py", "--dataset_path", file_path]
     return_code = subprocess.call(cmd)
     print(f"Return code: {return_code}")
 
