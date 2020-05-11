@@ -22,11 +22,11 @@ from utilities import hdf_keys
 
 DEFAULT_DATASET_PATH = Path("/data/pfizer_tx/tasks_all_clr/all_clr_train_LUAD_stage.h5")
 DEFAULT_HPARAMS = dict()
-DEFAULT_HPARAMS['C'] = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+DEFAULT_HPARAMS['C'] = [5, 10, 100, 1000]
 
 def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATASET_PATH, hparams=DEFAULT_HPARAMS):
     """Sends a single data set (stored as an h5 file by Pandas) to a nested CV loop.  
-    An L2-penalixed logistic regression model is trained on multiple hyperparameters in the inner loop.  
+    A model is trained on multiple hyperparameters in the inner loop.  
     Unbiased performance is assessed in the outer loop.  
     Output is saved to a file named "<dataset_path>_l2.csv" in the local folder ./results/  
     
@@ -38,7 +38,8 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     hparams : dict
     
     """
-    results_dir =  pathlib.Path("./results/l2/").mkdir(parents=True, exist_ok=True)
+    results_dir =  Path("./results/l2/")
+    results_dir.mkdir(parents=True, exist_ok=True)
     results = []
     best_params = []
     dataset_path = Path(dataset_path)
