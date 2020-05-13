@@ -14,10 +14,10 @@ import numpy as np
 import pandas as pd
 import sklearn as skl
 from sklearn.model_selection import KFold, ParameterGrid
-from sklearn.neighbors import KNeighborsClassifier as KNN
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import roc_auc_score
 
-from resampling import NestedCV
+from resampling import NestedCV, BaseModel
 from utilities import hdf_keys
 
 DEFAULT_DATASET_PATH = Path("/data/pfizer_tx/tasks_all_clr/all_clr_train_LUAD_stage.h5")
@@ -47,9 +47,18 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     print(f"Training on {dataset_path}")
     keys = hdf_keys(dataset_path)
     test_data = {key : pd.read_hdf(dataset_path, key = key) for key in keys}
-    def knn_model(params):
-        return KNN(n_neighbors=params['k'], n_jobs=-1)
-    nestedCV = NestedCV(knn_model, hparams, n_splits_outer, n_splits_inner)
+    
+    class KNN(BaseModel):
+        def __init__(self, params):
+            super().__init__()
+            self.params = params
+            self.model = KNeighborsClassifier(n_neighbors=self.params['k'], n_jobs=-1)
+        def fit(self, X, y):
+            self.model.fit(X, y)
+        def predict_proba(self,X):
+            return self.model.predict_proba(X)
+        
+    nestedCV = NestedCV(KNN, hparams, n_splits_outer, n_splits_inner)
     performance, params = nestedCV.train(test_data['/expression'], test_data['/labels'])
     results = pd.DataFrame([performance, params]).transpose()
     results.columns = ["auc", "params"]
