@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # L2 benchmark
+"""L2 benchmark
+NB This runs with the default values in models/l2_baseline.py
+"""
 
 import os
 from pathlib import Path

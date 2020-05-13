@@ -38,7 +38,7 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     hparams : dict
     
     """
-    results_dir =  Path("./results/l2/")
+    results_dir =  Path("./results/l2-liblinear/")
     results_dir.mkdir(parents=True, exist_ok=True)
     results = []
     best_params = []
