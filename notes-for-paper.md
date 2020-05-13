@@ -32,3 +32,7 @@ From <https://weina.me/nested-cross-validation>: "...if the model is stable (doe
 
 This is the best way to compare each method.
 Are there less computationally expensive alternatives?
+
+### On screening variables using mutual information
+
+There is a strong theoretical rationale. Fano's bound - See Masters p 479-80
