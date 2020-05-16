@@ -12,6 +12,8 @@ import sklearn as skl
 from sklearn.model_selection import KFold, ParameterGrid
 from sklearn.metrics import roc_auc_score
 
+from NTK import kernel_value_batch
+
 class BaseModel:
     def fit(self, X, y):
         raise NotImplementedError
@@ -135,17 +137,17 @@ class NTKNestedCV:
         
         for split_idx, (t, v) in enumerate(inner.split(input_x)):
             print(f"Inner fold {split_idx+1} of {self.n_splits_inner}")
-            for depth in range(MAX_DEPTH):
+            for depth in range(self.hparams['max_depth']):
                 for fix_depth in range(depth + 1):
                     K = Ks[depth][fix_depth]
-                    for c in C_LIST:
+                    for c in self.hparams['C']:
                         if self.verbose:
                             print(f"Fitting model with depth: {depth}, fix depth: {fix_depth}, C: {c}")
                         auc = self.alg(
                             K_train=K[t][:, t], 
                             K_val=K[v][:, t], 
-                            y_train=y[t], 
-                            y_val=y[v], 
+                            y_train=input_y[t], 
+                            y_val=input_y[v], 
                             C=c)
                         key_ = f"{depth},{fix_depth},{c}"
                         try:
@@ -177,8 +179,8 @@ class NTKNestedCV:
             this_performance = self.alg(
                                 K_train=K[t][:, t], 
                                 K_val=K[v][:, t], 
-                                y_train=y[t], 
-                                y_val=y[v], 
+                                y_train=y_train, 
+                                y_val=y_test, 
                                 C=best_params['best_C'])
             outer_fold_results[f"Fold {split_idx+1}"] = (best_params, this_performance)
         time_taken = time() - start

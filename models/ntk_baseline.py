@@ -3,30 +3,36 @@
 
 # NTK benchmark
 
+from functools import partial
+import math
+from operator import itemgetter
 import os
 from pathlib import Path
 from time import time
-from tqdm import tqdm
-
+from importlib import reload
 from fire import Fire
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sklearn as skl
-from sklearn.model_selection import KFold, ParameterGrid
-from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 from sklearn.metrics import roc_auc_score
+from sklearn.svm import SVC
 
-from resampling import NestedCV, BaseModel
-from NTK import 
+from NTK import kernel_value_batch
+from resampling import NTKNestedCV
 from utilities import hdf_keys
 
 DEFAULT_DATASET_PATH = Path("/data/pfizer_tx/tasks_all_clr/all_clr_train_LUAD_stage.h5")
-DEFAULT_HPARAMS = dict()
-DEFAULT_HPARAMS['c'] = [10.0 ** i for i in range(-2, 5)] # hyperparameter for NTK
-MAX_DEPTH = 5 
-n_classes = len(set(Y_tx)) # n classes
-n_features = X_tx.shape[1] # n features
+DEFAULT_MAX_DEPTH = 20 
+DEFAULT_C_LIST = [10.0 ** i for i in range(-2, 5)] # hyperparameter for NTK
+DEFAULT_HPARAMS = {'max_depth' : DEFAULT_MAX_DEPTH, 'C' : DEFAULT_C_LIST}
+
+def alg(K_train, K_val, y_train, y_val, C):
+    """Alg is the SVM func that takes a pre-computed NT kernel"""
+    clf = SVC(kernel = "precomputed", C = C, cache_size = 100000, probability=True)
+    clf.fit(K_train, y_train)
+    y_hat = clf.predict_proba(K_val)[:,1]
+    return roc_auc_score(y_val, y_hat)
 
 def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATASET_PATH, hparams=DEFAULT_HPARAMS):
     """Sends a single data set (stored as an h5 file by Pandas) to a nested CV loop.  
@@ -42,7 +48,7 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     hparams : dict
     
     """
-    results_dir =  Path("./results/l2-liblinear/")
+    results_dir =  Path("./results/ntk/")
     results_dir.mkdir(parents=True, exist_ok=True)
     results = []
     best_params = []
@@ -51,22 +57,14 @@ def cross_val_loop(n_splits_outer=5, n_splits_inner=5, dataset_path=DEFAULT_DATA
     print(f"Training on {dataset_path}")
     keys = hdf_keys(dataset_path)
     test_data = {key : pd.read_hdf(dataset_path, key = key) for key in keys}
-    
-    class L2LR(BaseModel):
-        def __init__(self, params):
-            super().__init__()
-            self.params = params
-            self.model = LogisticRegression(C=params['C'], solver='liblinear', n_jobs=1)
-#             self.model = LogisticRegression(C=params['C'], solver='lbfgs', n_jobs=-1)
-        def fit(self, X, y):
-            self.model.fit(X, y)
-        def predict_proba(self,X):
-            return self.model.predict_proba(X)
-        
-    nestedCV = NestedCV(L2LR, hparams, n_splits_outer, n_splits_inner)
-    performance, params = nestedCV.train(test_data['/expression'], test_data['/labels'])
-    results = pd.DataFrame([performance, params]).transpose()
-    results.columns = ["auc", "params"]
+    ntk_nest_cv = NTKNestedCV(alg=alg, hparams=DEFAULT_HPARAMS, n_splits_outer=5, n_splits_inner=5)
+    performance = ntk_nest_cv.train(test_data['/expression'], test_data['/labels'])
+    best_depth = [p['best_depth'] for p, v in performance.values()]
+    best_fix = [p['best_fix'] for p, v in performance.values()]
+    best_C = [p['best_C'] for p, v in performance.values()]
+    auc = [v for p, v in performance.values()]
+    results = pd.DataFrame([best_depth, best_fix, best_C, auc]).transpose()
+    results.columns = ["depth", "fix_depth", "C", "auc"]
     results.to_csv(results_path, index=False)
     
 if __name__ == "__main__":
