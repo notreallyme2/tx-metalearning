@@ -9,10 +9,14 @@ import os
 from pathlib import Path
 import subprocess
 from time import time
+import yaml
 from joblib import Parallel, delayed
 import pandas as pd
 
-STEM_PATH = Path("/data/pfizer_tx/tasks_all_clr/")
+with open("config.yml", "r") as ymlfile:
+    config = yaml.load(ymlfile, Loader=yaml.SafeLoader)
+DATA_PATH = Path(config['paths']['data_path'])
+STEM_PATH = DATA_PATH/"tasks_all_clr/"
 tcga_classification_tasks = pd.read_csv("./data_utilities/tcga_classification_tasks.csv")
 full_paths = [str(STEM_PATH/f) for f in tcga_classification_tasks["filename"]]
 
